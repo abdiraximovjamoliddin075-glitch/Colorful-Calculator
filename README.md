@@ -1,13 +1,17 @@
-# Rangli Kalkulyator 🌈
+# Neon Catch 🌈
 
-O‘zbek tilidagi, mobil telefonda ham ishlaydigan rangli kalkulyator. Tugmalarda yoqimli ovoz bor; yuqoridagi ovoz tugmasi orqali uni yoqib-o‘chirish mumkin.
+O‘zbek tilidagi mini arcade o‘yini. Tushayotgan rangli nishonlarni bosib, 30 soniyada imkon qadar ko‘p ochko to‘plang.
 
-## Sayt
+## O‘ynash
 
-https://abdiraximovjamoliddin075-glitch.github.io/Colorful-Calculator/
+- **O‘YINNI BOSHLASH** tugmasini bosing.
+- Nishonni bossangiz **+10 ochko** olasiz.
+- Nishon tushib ketsa, **2 soniya** kamayadi.
+- Har 50 ochkoda o‘yin tezlashadi.
+- **Space** yoki **Esc** — pauza; yuqoridagi tugma bilan ovozni yoqib/o‘chiring.
+- Rekord va ovoz sozlamasi brauzeringizda saqlanadi.
 
-GitHub Pages yangi o‘zgarishlarni avtomatik joylaydi. Bir oz kutib, sahifani yangilang.
+## GitHub Pages
 
-## Boshqaruv
+Repository sozlamalarida **Settings → Pages → Deploy from a branch → main → /(root) → Save** ni tanlang.
 
-Ekrandagi tugmalar yoki klaviaturadan foydalaning. `Enter` — hisoblash, `Backspace` — o‘chirish, `Escape` — tozalash.
