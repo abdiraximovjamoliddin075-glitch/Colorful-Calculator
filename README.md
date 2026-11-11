@@ -1,17 +1,13 @@
-# Neon Catch 🌈
+# Neon Racer 🏁
 
-O‘zbek tilidagi mini arcade o‘yini. Tushayotgan rangli nishonlarni bosib, 30 soniyada imkon qadar ko‘p ochko to‘plang.
+O‘zbek tilidagi neon uslubidagi poyga o‘yini. Uch qatorli yo‘lda turli rang va ko‘rinishdagi raqib mashinalarini quvib o‘ting, ularga urilmang va rekord ochko yig‘ing.
 
-## O‘ynash
-
-- **O‘YINNI BOSHLASH** tugmasini bosing.
-- Nishonni bossangiz **+10 ochko** olasiz.
-- Nishon tushib ketsa, **2 soniya** kamayadi.
-- Har 50 ochkoda o‘yin tezlashadi.
-- **Space** yoki **Esc** — pauza; yuqoridagi tugma bilan ovozni yoqib/o‘chiring.
-- Rekord va ovoz sozlamasi brauzeringizda saqlanadi.
+## Boshqaruv
+- Kompyuter: `←` / `→` yoki `A` / `D` bilan qator almashtiring.
+- Telefon: ekrandagi **CHAP** va **O‘NG** tugmalarini bosing.
+- Har bir raqibni quvib o‘tish **+100 ochko** beradi.
+- To‘qnashuvda o‘yin tugaydi. Mos telefonda qisqa vibratsiya, animatsion ekran silkinishi va ovozli effekt ishlaydi.
+- Rekord va ovoz sozlamasi brauzerda saqlanadi.
 
 ## GitHub Pages
-
-Repository sozlamalarida **Settings → Pages → Deploy from a branch → main → /(root) → Save** ni tanlang.
-
+Repositoryda **Settings → Pages → Deploy from a branch → main → /(root) → Save** ni tanlang.

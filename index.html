@@ -2,51 +2,54 @@
 <html lang="uz">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#10102b" />
-    <meta name="description" content="Neon Catch — rangli nishonlarni ushlab, eng yuqori natijaga erishing!" />
-    <title>Neon Catch — Tezlik o‘yini</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#101326" />
+    <meta name="description" content="Neon Racer — raqib mashinalarni quvib o‘ting, ochko yig‘ing va rekord o‘rnating." />
+    <title>Neon Racer — Poyga o‘yini</title>
     <link rel="stylesheet" href="style.css" />
     <script src="script.js" defer></script>
   </head>
   <body>
-    <div class="glow glow-pink" aria-hidden="true"></div>
-    <div class="glow glow-blue" aria-hidden="true"></div>
+    <div class="ambient ambient-left" aria-hidden="true"></div>
+    <div class="ambient ambient-right" aria-hidden="true"></div>
     <main class="game-shell">
-      <header class="header">
-        <a class="brand" href="#" aria-label="Neon Catch bosh sahifa"><span class="brand-icon" aria-hidden="true">✦</span> NEON <span>CATCH</span></a>
-        <button id="sound-button" class="sound-button" type="button" aria-pressed="true" aria-label="Ovoz yoqilgan. O‘chirish uchun bosing"><span id="sound-icon" aria-hidden="true">♪</span><span id="sound-label">OVOZ YOQ</span></button>
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Neon Racer"><span class="brand-icon">⚡</span><span>NEON <b>RACER</b></span></a>
+        <button id="sound-button" class="sound-button" type="button" aria-pressed="true" aria-label="Ovoz yoqilgan, o‘chirish uchun bosing">♪ <span id="sound-label">OVOZ YOQ</span></button>
       </header>
 
-      <section class="intro" aria-labelledby="game-title">
-        <p class="eyebrow">30 SONIYALIK ARCADE O‘YINI</p>
-        <h1 id="game-title">Nishonlarni <span>ushla!</span></h1>
-        <p class="instructions">Tushayotgan rangli nishonlarni bosing. Har biri <b>+10 ochko</b>; o‘tkazib yuborsangiz, 2 soniya kamayadi.</p>
+      <section class="intro">
+        <p class="eyebrow">ARCADE Poyga • REKORDINGIZNI YANGILANG</p>
+        <h1>Yo‘lda <span>raqobat</span></h1>
+        <p>Raqiblarni quvib o‘ting, mashinalardan qoching va imkon qadar uzoq poyga qiling!</p>
       </section>
 
-      <section class="stats" aria-label="O‘yin ko‘rsatkichlari">
-        <div class="stat"><span class="stat-label">OCHKO</span><strong id="score">0</strong></div>
-        <div class="stat stat-time"><span class="stat-label">VAQT</span><strong><span id="time">30</span><small>s</small></strong></div>
-        <div class="stat"><span class="stat-label">REKORD</span><strong id="best">0</strong></div>
+      <section class="hud" aria-label="Poyga ko‘rsatkichlari">
+        <div class="stat"><span>OCHKO</span><strong id="score">0</strong></div>
+        <div class="stat speed-stat"><span>TEZLIK</span><strong><span id="speed">0</span><small> km/soat</small></strong></div>
+        <div class="stat"><span>REKORD</span><strong id="best">0</strong></div>
       </section>
 
-      <div class="progress-track" aria-label="Qolgan vaqt"><div id="time-progress" class="progress-fill"></div></div>
-
-      <section id="game-area" class="game-area" aria-label="O‘yin maydoni" aria-describedby="game-help">
-        <div class="grid-glow" aria-hidden="true"></div>
+      <div class="track-wrap">
+        <canvas id="race-canvas" aria-label="Poyga yo‘li. Mashinani boshqarish uchun chap va o‘ng tugmalardan foydalaning."></canvas>
+        <div class="race-badge" id="race-badge">STARTGA TAYYOR</div>
         <div id="overlay" class="overlay">
           <div class="overlay-card">
-            <div id="overlay-icon" class="overlay-icon" aria-hidden="true">🎯</div>
-            <h2 id="overlay-title">Tayyormisiz?</h2>
-            <p id="overlay-text">Boshlash tugmasini bosing va nishonlarni ushlang!</p>
-            <button id="start-button" class="primary-button" type="button">O‘YINNI BOSHLASH <span aria-hidden="true">→</span></button>
+            <div id="overlay-icon" class="overlay-icon">🏁</div>
+            <p class="eyebrow">NEON RACER</p>
+            <h2 id="overlay-title">Poygani boshlang!</h2>
+            <p id="overlay-text">Raqiblarni quvib o‘ting. To‘qnashuvdan saqlaning — tezlik oshgani sari poyga qiyinlashadi.</p>
+            <button id="start-button" class="primary-button" type="button">START <span>→</span></button>
           </div>
         </div>
-        <div id="targets" class="targets" aria-live="off"></div>
-        <div id="effects" class="effects" aria-hidden="true"></div>
-      </section>
-      <p id="game-help" class="help">Kompyuterda ham, telefonda ham nishonlarni bosib o‘ynang · <kbd>Space</kbd> — pauza</p>
-      <footer>Har bir o‘yin — yangi rekord imkoniyati <span aria-hidden="true">⚡</span></footer>
+      </div>
+
+      <div class="control-row" aria-label="Mashina boshqaruvi">
+        <button class="drive-button" id="left-button" type="button" aria-label="Chapga burilish">←<small>CHAP</small></button>
+        <p>← → yoki A / D<br /><span>telefonda tugmalarni bosing</span></p>
+        <button class="drive-button" id="right-button" type="button" aria-label="O‘ngga burilish">→<small>O‘NG</small></button>
+      </div>
+      <footer>Har bir quvib o‘tish — <b>+100 ochko</b> <span aria-hidden="true">🏎️</span></footer>
     </main>
   </body>
 </html>
