@@ -2,9 +2,9 @@
 <html lang="uz">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#101326" />
-    <meta name="description" content="Neon Racer — raqib mashinalarni quvib o‘ting, ochko yig‘ing va rekord o‘rnating." />
+    <meta name="description" content="Neon Racer — raqiblarni quvib o‘ting, ochko yig‘ing va rekord o‘rnating." />
     <title>Neon Racer — Poyga o‘yini</title>
     <link rel="stylesheet" href="style.css" />
     <script src="script.js" defer></script>
@@ -14,42 +14,46 @@
     <div class="ambient ambient-right" aria-hidden="true"></div>
     <main class="game-shell">
       <header class="topbar">
-        <a class="brand" href="#" aria-label="Neon Racer"><span class="brand-icon">⚡</span><span>NEON <b>RACER</b></span></a>
-        <button id="sound-button" class="sound-button" type="button" aria-pressed="true" aria-label="Ovoz yoqilgan, o‘chirish uchun bosing">♪ <span id="sound-label">OVOZ YOQ</span></button>
+        <a class="brand" href="#" aria-label="Neon Racer"><span class="brand-icon" aria-hidden="true">⚡</span><span>NEON <b>RACER</b></span></a>
+        <div class="header-actions">
+          <button id="pause-button" class="sound-button pause-top" type="button" aria-label="Pauza" disabled>Ⅱ <span>PAUZA</span></button>
+          <button id="sound-button" class="sound-button" type="button" aria-pressed="true" aria-label="Ovoz yoqilgan, o‘chirish uchun bosing">♪ <span id="sound-label">OVOZ YOQ</span></button>
+        </div>
       </header>
 
       <section class="intro">
-        <p class="eyebrow">ARCADE Poyga • REKORDINGIZNI YANGILANG</p>
+        <p class="eyebrow">ARCADE POYGA · REKORDINGIZNI YANGILANG</p>
         <h1>Yo‘lda <span>raqobat</span></h1>
-        <p>Raqiblarni quvib o‘ting, mashinalardan qoching va imkon qadar uzoq poyga qiling!</p>
+        <p>Raqiblarni quvib o‘ting, mashinalardan qoching va imkon qadar uzoq poyga qiling.</p>
       </section>
 
       <section class="hud" aria-label="Poyga ko‘rsatkichlari">
         <div class="stat"><span>OCHKO</span><strong id="score">0</strong></div>
         <div class="stat speed-stat"><span>TEZLIK</span><strong><span id="speed">0</span><small> km/soat</small></strong></div>
+        <div class="stat"><span>DARAJA</span><strong id="level">1</strong></div>
         <div class="stat"><span>REKORD</span><strong id="best">0</strong></div>
       </section>
 
-      <div class="track-wrap">
-        <canvas id="race-canvas" aria-label="Poyga yo‘li. Mashinani boshqarish uchun chap va o‘ng tugmalardan foydalaning."></canvas>
+      <div class="track-wrap" id="track-wrap">
+        <canvas id="race-canvas" aria-label="Poyga yo‘li. Chap va o‘ng tugmalar, strelkalar yoki surish ishorasi bilan boshqaring."></canvas>
         <div class="race-badge" id="race-badge">STARTGA TAYYOR</div>
         <div id="overlay" class="overlay">
           <div class="overlay-card">
-            <div id="overlay-icon" class="overlay-icon">🏁</div>
+            <div id="overlay-icon" class="overlay-icon" aria-hidden="true">🏁</div>
             <p class="eyebrow">NEON RACER</p>
             <h2 id="overlay-title">Poygani boshlang!</h2>
             <p id="overlay-text">Raqiblarni quvib o‘ting. To‘qnashuvdan saqlaning — tezlik oshgani sari poyga qiyinlashadi.</p>
-            <button id="start-button" class="primary-button" type="button">START <span>→</span></button>
+            <button id="start-button" class="primary-button" type="button">START <span aria-hidden="true">→</span></button>
           </div>
         </div>
       </div>
 
       <div class="control-row" aria-label="Mashina boshqaruvi">
-        <button class="drive-button" id="left-button" type="button" aria-label="Chapga burilish">←<small>CHAP</small></button>
-        <p>← → yoki A / D<br /><span>telefonda tugmalarni bosing</span></p>
-        <button class="drive-button" id="right-button" type="button" aria-label="O‘ngga burilish">→<small>O‘NG</small></button>
+        <button class="drive-button" id="left-button" type="button" aria-label="Chap qatorga o‘tish">←<small>CHAP</small></button>
+        <p>← → yoki A / D<br /><span>telefonda tugmalarni bosing yoki yo‘lni suring</span></p>
+        <button class="drive-button" id="right-button" type="button" aria-label="O‘ng qatorga o‘tish">→<small>O‘NG</small></button>
       </div>
-      <footer>Har bir quvib o‘tish — <b>+100 ochko</b> <span aria-hidden="true">🏎️</span></footer>
+      <footer>Quvib o‘tish <b>+100</b> · Yaqin o‘tish <b>+25</b> <span aria-hidden="true">🏎️</span></footer>
     </main>
   </body>
 </html>
