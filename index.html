@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#6a3ef3" />
-    <meta name="description" content="O'yin uslubidagi rangli kalkulyator." />
-    <title>Game Calculator</title>
+    <meta name="description" content="O‘yin uslubidagi rangli kalkulyator — ovozli tugmalar, yorqin dizayn va oddiy hisob-kitoblar." />
+    <title>Rangli Kalkulyator</title>
     <link rel="stylesheet" href="style.css" />
     <script src="script.js" defer></script>
   </head>
@@ -18,45 +18,45 @@
       <div class="game-card">
         <div class="top-bar">
           <div class="brand">
-            <span class="brand-mark">✦</span>
-            <span>GAME CALC</span>
+            <span class="brand-mark" aria-hidden="true">✦</span>
+            <span>RANGLI KALKULYATOR</span>
           </div>
-          <button id="sound-toggle" class="sound-toggle" type="button" aria-label="Sound on/off" aria-pressed="true">
-            <span class="sound-icon">♪</span>
-            <span class="sound-text">ON</span>
+          <button id="sound-toggle" class="sound-toggle" type="button" aria-label="Tugma ovozini o‘chirish" aria-pressed="true">
+            <span class="sound-icon" aria-hidden="true">♪</span>
+            <span class="sound-text">OVOZ YOQ</span>
           </button>
         </div>
 
-        <div class="screen-wrap">
+        <div class="screen-wrap" aria-live="polite" aria-atomic="true">
           <div class="expression" id="expression">&nbsp;</div>
-          <div class="result" id="result">0</div>
+          <output class="result" id="result">0</output>
         </div>
 
-        <div class="keys" id="keys" aria-label="Calculator keypad">
-          <button class="btn control" data-action="clear">AC</button>
-          <button class="btn control" data-action="delete">DEL</button>
-          <button class="btn operator" data-op="%">%</button>
-          <button class="btn operator" data-op="÷">÷</button>
+        <div class="keys" id="keys" aria-label="Kalkulyator tugmalari">
+          <button class="btn control" data-action="clear" aria-label="Hammasini tozalash">AC</button>
+          <button class="btn control" data-action="delete" aria-label="Oxirgi raqamni o‘chirish">DEL</button>
+          <button class="btn operator" data-action="percent" aria-label="Foiz">%</button>
+          <button class="btn operator" data-op="÷" aria-label="Bo‘lish">÷</button>
 
           <button class="btn" data-number="7">7</button>
           <button class="btn" data-number="8">8</button>
           <button class="btn" data-number="9">9</button>
-          <button class="btn operator" data-op="×">×</button>
+          <button class="btn operator" data-op="×" aria-label="Ko‘paytirish">×</button>
 
           <button class="btn" data-number="4">4</button>
           <button class="btn" data-number="5">5</button>
           <button class="btn" data-number="6">6</button>
-          <button class="btn operator" data-op="−">−</button>
+          <button class="btn operator" data-op="−" aria-label="Ayirish">−</button>
 
           <button class="btn" data-number="1">1</button>
           <button class="btn" data-number="2">2</button>
           <button class="btn" data-number="3">3</button>
-          <button class="btn operator" data-op="+">+</button>
+          <button class="btn operator" data-op="+" aria-label="Qo‘shish">+</button>
 
-          <button class="btn sign" data-action="sign">±</button>
+          <button class="btn sign" data-action="sign" aria-label="Ishorani almashtirish">±</button>
           <button class="btn" data-number="0">0</button>
-          <button class="btn decimal" data-action="decimal">.</button>
-          <button class="btn equals" data-action="equals">=</button>
+          <button class="btn decimal" data-action="decimal" aria-label="O‘nli kasr nuqtasi">.</button>
+          <button class="btn equals" data-action="equals" aria-label="Natijani hisoblash">=</button>
         </div>
       </div>
     </main>
