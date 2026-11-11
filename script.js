@@ -1,221 +1,177 @@
-const resultEl = document.getElementById('result');
-const expressionEl = document.getElementById('expression');
-const buttons = document.getElementById('buttons');
-const soundToggle = document.getElementById('sound-toggle');
+const gameArea = document.getElementById('game-area');
+const scoreEl = document.getElementById('score');
+const timeEl = document.getElementById('time');
+const bestEl = document.getElementById('best');
+const startBtn = document.getElementById('start-btn');
+const messageEl = document.getElementById('message');
 
-let display = '0';
-let storedValue = null;
-let pendingOperator = null;
-let waitingForInput = false;
-let expressionText = '';
-let soundEnabled = true;
-let audioContext = null;
+let score = 0;
+let timeLeft = 30;
+let best = Number(localStorage.getItem('neon-best') || 0);
+let playing = false;
+let spawnTimer = 0;
+let animationFrame = null;
+let targets = [];
 
-function render() {
-  resultEl.textContent = display;
-  expressionEl.textContent = expressionText || (pendingOperator && storedValue !== null
-    ? `${formatNumber(storedValue)} ${pendingOperator}`
-    : '\u00a0');
+bestEl.textContent = best;
+
+function updateHud() {
+  scoreEl.textContent = score;
+  timeEl.textContent = timeLeft;
+  bestEl.textContent = best;
 }
 
-function formatNumber(value) {
-  if (!Number.isFinite(value)) return 'Xato';
-  return String(Number(value.toPrecision(11)));
+function showMessage(text, visible = true) {
+  messageEl.textContent = text;
+  messageEl.classList.toggle('visible', visible);
 }
 
-function playTone(freq, duration = 0.1, volume = 0.035) {
-  if (!soundEnabled) return;
-  try {
-    const AudioCtor = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtor) return;
-    audioContext ||= new AudioCtor();
-    if (audioContext.state === 'suspended') audioContext.resume();
-
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    const now = audioContext.currentTime;
-
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(freq, now);
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(volume, now + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
-    oscillator.start(now);
-    oscillator.stop(now + duration + 0.02);
-  } catch {
-    // Audio is optional
-  }
+function randomBetween(min, max) {
+  return Math.random() * (max - min) + min;
 }
 
-function playSound(type = 'tap') {
-  if (!soundEnabled) return;
-  const tones = {
-    tap: [420],
-    operator: [540],
-    equals: [660, 820, 980],
-    clear: [350, 280]
-  };
+function createTarget() {
+  const target = document.createElement('button');
+  target.type = 'button';
+  target.className = 'target';
 
-  (tones[type] || tones.tap).forEach((freq, index) => {
-    setTimeout(() => playTone(freq, type === 'equals' ? 0.12 : 0.09, type === 'equals' ? 0.05 : 0.03), index * 50);
+  const size = randomBetween(32, 72);
+  const x = randomBetween(8, gameArea.clientWidth - size - 8);
+  const y = -size;
+  const colors = ['#6ee7ff', '#ff76c8', '#ffd166', '#6ef0b8', '#ff5d7a'];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+
+  target.style.width = `${size}px`;
+  target.style.height = `${size}px`;
+  target.style.left = `${x}px`;
+  target.style.top = `${y}px`;
+  target.style.color = color;
+  target.style.background = `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), ${color})`;
+
+  const speed = randomBetween(1.8, 3.2);
+  target.dataset.speed = speed;
+  target.dataset.size = size;
+
+  target.addEventListener('click', () => {
+    if (!playing) return;
+    score += 10;
+    target.remove();
+    updateHud();
+    playTap();
   });
+
+  gameArea.appendChild(target);
+  targets.push(target);
 }
 
-function appendDigit(digit) {
-  expressionText = '';
-  if (display === 'Xato' || waitingForInput) {
-    display = digit;
-    waitingForInput = false;
-  } else if (display === '0') {
-    display = digit;
-  } else if (display.replace('-', '').replace('.', '').length < 14) {
-    display += digit;
-  }
-  render();
+function removeTarget(target) {
+  targets = targets.filter(item => item !== target);
+  target.remove();
 }
 
-function appendDecimal() {
-  expressionText = '';
-  if (display === 'Xato' || waitingForInput) {
-    display = '0.';
-    waitingForInput = false;
-  } else if (!display.includes('.')) {
-    display += '.';
-  }
-  render();
+function playTap() {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  oscillator.type = 'triangle';
+  oscillator.frequency.value = 660;
+  gain.gain.value = 0.04;
+  oscillator.connect(gain);
+  gain.connect(audioContext.destination);
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + 0.08);
 }
 
-function calculate(left, right, operator) {
-  switch (operator) {
-    case '+': return left + right;
-    case '−': return left - right;
-    case '×': return left * right;
-    case '÷': return right === 0 ? NaN : left / right;
-    default: return right;
-  }
-}
+function updateTargets() {
+  const now = performance.now();
+  for (let i = targets.length - 1; i >= 0; i--) {
+    const target = targets[i];
+    const speed = Number(target.dataset.speed || 2);
+    const top = Number.parseFloat(target.style.top || '0');
+    const size = Number(target.dataset.size || 40);
+    const nextTop = top + speed;
+    target.style.top = `${nextTop}px`;
 
-function chooseOperator(operator) {
-  if (display === 'Xato') return;
-  expressionText = '';
-  const current = Number(display);
-
-  if (pendingOperator && !waitingForInput) {
-    const result = calculate(storedValue, current, pendingOperator);
-    display = formatNumber(result);
-    storedValue = Number.isFinite(result) ? result : null;
-  } else if (storedValue === null || !waitingForInput) {
-    storedValue = current;
+    if (nextTop + size >= gameArea.clientHeight) {
+      removeTarget(target);
+      if (playing) {
+        timeLeft = Math.max(0, timeLeft - 3);
+        if (timeLeft <= 0) {
+          endGame();
+          return;
+        }
+      }
+    }
   }
 
-  pendingOperator = operator;
-  waitingForInput = true;
-  render();
-}
-
-function evaluate() {
-  if (!pendingOperator || storedValue === null || display === 'Xato') return;
-  const left = storedValue;
-  const operator = pendingOperator;
-  const right = Number(display);
-  const total = calculate(left, right, operator);
-
-  expressionText = `${formatNumber(left)} ${operator} ${formatNumber(right)} =`;
-  display = formatNumber(total);
-  storedValue = null;
-  pendingOperator = null;
-  waitingForInput = true;
-  render();
-}
-
-function toggleSign() {
-  if (display === '0' || display === 'Xato') return;
-  expressionText = '';
-  display = display.startsWith('-') ? display.slice(1) : `-${display}`;
-  render();
-}
-
-function applyPercent() {
-  if (display === 'Xato') return;
-  expressionText = '';
-  display = formatNumber(Number(display) / 100);
-  render();
-}
-
-function clearAll() {
-  display = '0';
-  storedValue = null;
-  pendingOperator = null;
-  waitingForInput = false;
-  expressionText = '';
-  render();
-}
-
-function deleteLast() {
-  expressionText = '';
-  if (display === 'Xato' || waitingForInput) {
-    display = '0';
-    waitingForInput = false;
-  } else {
-    display = display.length > 1 ? display.slice(0, -1) : '0';
+  if (playing) {
+    spawnTimer -= 1;
+    if (spawnTimer <= 0) {
+      createTarget();
+      spawnTimer = 30 + Math.floor(Math.random() * 18);
+    }
   }
-  render();
 }
 
-buttons.addEventListener('click', (event) => {
-  const button = event.target.closest('button');
-  if (!button) return;
+function loop() {
+  if (!playing) return;
 
-  button.classList.add('pressed');
-  setTimeout(() => button.classList.remove('pressed'), 120);
+  updateTargets();
+  animationFrame = requestAnimationFrame(loop);
+}
 
-  if (button.dataset.number !== undefined) {
-    playSound('tap');
-    appendDigit(button.dataset.number);
-    return;
-  }
+function endGame() {
+  playing = false;
+  cancelAnimationFrame(animationFrame);
+  best = Math.max(best, score);
+  localStorage.setItem('neon-best', String(best));
+  bestEl.textContent = best;
+  showMessage(`GAME OVER\nSCORE: ${score}`, true);
+  startBtn.textContent = 'PLAY AGAIN';
+  for (const target of [...targets]) removeTarget(target);
+}
 
-  if (button.dataset.op) {
-    playSound('operator');
-    chooseOperator(button.dataset.op);
-    return;
-  }
+function startGame() {
+  score = 0;
+  timeLeft = 30;
+  playing = true;
+  spawnTimer = 20;
+  startBtn.textContent = 'PLAYING...';
+  showMessage('', false);
 
-  const action = button.dataset.action;
-  playSound(action === 'equals' ? 'equals' : action === 'clear' ? 'clear' : 'tap');
+  for (const target of [...targets]) removeTarget(target);
+  updateHud();
 
-  switch (action) {
-    case 'clear': clearAll(); break;
-    case 'delete': deleteLast(); break;
-    case 'decimal': appendDecimal(); break;
-    case 'sign': toggleSign(); break;
-    case 'percent': applyPercent(); break;
-    case 'equals': evaluate(); break;
+  const countdown = setInterval(() => {
+    if (!playing) {
+      clearInterval(countdown);
+      return;
+    }
+
+    timeLeft -= 1;
+    updateHud();
+
+    if (timeLeft <= 0) {
+      clearInterval(countdown);
+      endGame();
+    }
+  }, 1000);
+
+  animationFrame = requestAnimationFrame(loop);
+}
+
+startBtn.addEventListener('click', () => {
+  if (playing) return;
+  startGame();
+});
+
+window.addEventListener('resize', () => {
+  for (const target of [...targets]) {
+    const x = Number.parseFloat(target.style.left || '0');
+    const maxX = gameArea.clientWidth - Number(target.dataset.size || 40) - 8;
+    if (x > maxX) target.style.left = `${maxX}px`;
   }
 });
 
-soundToggle.addEventListener('click', () => {
-  soundEnabled = !soundEnabled;
-  soundToggle.setAttribute('aria-pressed', String(soundEnabled));
-  soundToggle.querySelector('.sound-label').textContent = soundEnabled ? 'ON' : 'OFF';
-  soundToggle.querySelector('.sound-icon').textContent = soundEnabled ? '♪' : '🔇';
-  if (soundEnabled) playSound('tap');
-});
-
-document.addEventListener('keydown', (event) => {
-  if (/^[0-9]$/.test(event.key)) { playSound('tap'); appendDigit(event.key); }
-  else if (event.key === '.' || event.key === ',') { playSound('tap'); appendDecimal(); }
-  else if (event.key === 'Enter' || event.key === '=') { event.preventDefault(); playSound('equals'); evaluate(); }
-  else if (event.key === 'Backspace') { playSound('tap'); deleteLast(); }
-  else if (event.key === 'Escape') { playSound('clear'); clearAll(); }
-  else if (event.key === '%') { playSound('tap'); applyPercent(); }
-  else if (event.key === '+') { playSound('operator'); chooseOperator('+'); }
-  else if (event.key === '-') { playSound('operator'); chooseOperator('−'); }
-  else if (event.key === '*') { playSound('operator'); chooseOperator('×'); }
-  else if (event.key === '/') { event.preventDefault(); playSound('operator'); chooseOperator('÷'); }
-});
-
-render();
+updateHud();
+showMessage('START BOSISH UCHUN TUGMAGA Bosing', true);

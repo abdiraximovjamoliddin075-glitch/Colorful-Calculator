@@ -3,57 +3,41 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#6d4dff" />
-    <title>Game Calculator</title>
+    <title>Neon Catch</title>
+    <meta name="description" content="Neon Catch — tezkor rangli o'yin GitHub Pages uchun." />
     <link rel="stylesheet" href="style.css" />
     <script src="script.js" defer></script>
   </head>
   <body>
-    <div class="orb orb-1" aria-hidden="true"></div>
-    <div class="orb orb-2" aria-hidden="true"></div>
-    <div class="orb orb-3" aria-hidden="true"></div>
+    <div class="bg-glow bg-1"></div>
+    <div class="bg-glow bg-2"></div>
 
-    <main class="calculator-shell">
-      <div class="game-card">
-        <div class="top-bar">
-          <div class="brand"><span class="brand-dot">✦</span> GAME CALC</div>
-          <button id="sound-toggle" class="sound-toggle" type="button" aria-pressed="true">
-            <span class="sound-icon">♪</span>
-            <span class="sound-label">ON</span>
-          </button>
+    <main class="game-shell">
+      <div class="hud">
+        <div class="hud-box">
+          <span class="hud-label">SCORE</span>
+          <strong id="score">0</strong>
         </div>
-
-        <div class="screen" aria-live="polite" aria-atomic="true">
-          <div id="expression" class="expression">&nbsp;</div>
-          <div id="result" class="result">0</div>
+        <div class="hud-box">
+          <span class="hud-label">TIME</span>
+          <strong id="time">30</strong>
         </div>
-
-        <div class="buttons" id="buttons">
-          <button class="btn control" data-action="clear">AC</button>
-          <button class="btn control" data-action="delete">DEL</button>
-          <button class="btn operator" data-action="percent">%</button>
-          <button class="btn operator" data-op="÷">÷</button>
-
-          <button class="btn number" data-number="7">7</button>
-          <button class="btn number" data-number="8">8</button>
-          <button class="btn number" data-number="9">9</button>
-          <button class="btn operator" data-op="×">×</button>
-
-          <button class="btn number" data-number="4">4</button>
-          <button class="btn number" data-number="5">5</button>
-          <button class="btn number" data-number="6">6</button>
-          <button class="btn operator" data-op="−">−</button>
-
-          <button class="btn number" data-number="1">1</button>
-          <button class="btn number" data-number="2">2</button>
-          <button class="btn number" data-number="3">3</button>
-          <button class="btn operator" data-op="+">+</button>
-
-          <button class="btn special" data-action="sign">±</button>
-          <button class="btn number" data-number="0">0</button>
-          <button class="btn special" data-action="decimal">.</button>
-          <button class="btn equal" data-action="equals">=</button>
+        <div class="hud-box">
+          <span class="hud-label">BEST</span>
+          <strong id="best">0</strong>
         </div>
+      </div>
+
+      <div class="top-bar">
+        <div class="title-wrap">
+          <span class="mini-tag">ARCADE</span>
+          <h1>NEON CATCH</h1>
+        </div>
+        <button id="start-btn" class="start-btn" type="button">START</button>
+      </div>
+
+      <div id="game-area" class="game-area" aria-label="O'yin maydoni">
+        <div id="message" class="message visible">Boshlash uchun START bosing</div>
       </div>
     </main>
   </body>
