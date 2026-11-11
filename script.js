@@ -1,78 +1,86 @@
-const resultEl = document.querySelector('#result');
-const expressionEl = document.querySelector('#expression');
-const keys = document.querySelector('#keys');
-const soundToggle = document.querySelector('#sound-toggle');
-const soundIcon = document.querySelector('#sound-icon');
-const soundLabel = document.querySelector('#sound-label');
+const resultEl = document.getElementById('result');
+const expressionEl = document.getElementById('expression');
+const keys = document.getElementById('keys');
+const soundToggle = document.getElementById('sound-toggle');
 
 let display = '0';
 let storedValue = null;
 let pendingOperator = null;
 let waitingForInput = false;
 let finishedCalculation = false;
-let expressionMessage = '';
+let expressionText = '';
 let soundEnabled = true;
 let audioContext = null;
 
 function render() {
   resultEl.textContent = display;
-  expressionEl.textContent = expressionMessage || (pendingOperator && storedValue !== null
-    ? `${formatNumber(storedValue)} ${pendingOperator}`
-    : '\u00a0');
+  expressionEl.textContent = expressionText || (pendingOperator && storedValue !== null ? `${formatNumber(storedValue)} ${pendingOperator}` : '\u00a0');
 }
 
-function formatNumber(number) {
-  if (!Number.isFinite(number)) return 'Xato';
-  return String(Number(number.toPrecision(11)));
+function formatNumber(num) {
+  if (!Number.isFinite(num)) return 'Error';
+  return String(Number(num.toPrecision(11)));
 }
 
-// Browser audio starts only after a user action; no sound files or downloads are needed.
-function playClickSound(kind = 'tap') {
+function playTone(freq, duration, volume = 0.03, wave = 'sine') {
   if (!soundEnabled) return;
   try {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return;
-    audioContext ||= new AudioContextClass();
+    const AudioCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtor) return;
+    audioContext ??= new AudioCtor();
     if (audioContext.state === 'suspended') audioContext.resume();
 
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
     const now = audioContext.currentTime;
-    const frequencies = kind === 'equals' ? [660, 880] : kind === 'operator' ? [520] : [620];
-    frequencies.forEach((frequency, index) => {
-      const oscillator = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      const start = now + index * 0.065;
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(frequency, start);
-      gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(kind === 'equals' ? 0.075 : 0.045, start + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.13);
-      oscillator.connect(gain);
-      gain.connect(audioContext.destination);
-      oscillator.start(start);
-      oscillator.stop(start + 0.14);
-    });
+
+    oscillator.type = wave;
+    oscillator.frequency.setValueAtTime(freq, now);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(volume, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(now);
+    oscillator.stop(now + duration);
   } catch {
-    // The calculator remains usable if audio is unavailable or blocked by the browser.
+    // no-op if browser blocks audio
   }
 }
 
-function enterDigit(digit) {
-  expressionMessage = '';
-  if (display === 'Xato' || waitingForInput || finishedCalculation) {
-    display = digit;
+function playClickSound(type = 'tap') {
+  if (!soundEnabled) return;
+  const map = {
+    tap: [260, 420],
+    operator: [420, 540],
+    equals: [630, 840, 990],
+    clear: [200, 160]
+  };
+  const tones = map[type] || map.tap;
+  tones.forEach((freq, index) => {
+    setTimeout(() => playTone(freq, 0.09, type === 'equals' ? 0.05 : 0.035), index * 40);
+  });
+}
+
+function appendDigit(val) {
+  expressionText = '';
+  if (display === 'Error' || waitingForInput || finishedCalculation) {
+    display = val;
     waitingForInput = false;
     finishedCalculation = false;
   } else if (display === '0') {
-    display = digit;
+    display = val;
   } else if (display.replace('-', '').replace('.', '').length < 14) {
-    display += digit;
+    display += val;
   }
   render();
 }
 
-function enterDecimal() {
-  expressionMessage = '';
-  if (display === 'Xato' || waitingForInput || finishedCalculation) {
+function appendDecimal() {
+  expressionText = '';
+  if (display === 'Error' || waitingForInput || finishedCalculation) {
     display = '0.';
     waitingForInput = false;
     finishedCalculation = false;
@@ -88,35 +96,37 @@ function calculate(left, right, operator) {
     case '−': return left - right;
     case '×': return left * right;
     case '÷': return right === 0 ? NaN : left / right;
+    case '%': return (left * right) / 100;
     default: return right;
   }
 }
 
-function chooseOperator(operator) {
-  if (display === 'Xato') return;
-  expressionMessage = '';
-  const value = Number(display);
+function chooseOperator(op) {
+  if (display === 'Error') return;
+  const current = Number(display);
   if (pendingOperator && !waitingForInput) {
-    const answer = calculate(storedValue, value, pendingOperator);
-    display = formatNumber(answer);
-    storedValue = Number.isFinite(answer) ? answer : null;
+    const result = calculate(storedValue, current, pendingOperator);
+    display = formatNumber(result);
+    storedValue = Number.isFinite(result) ? result : null;
   } else if (storedValue === null || !waitingForInput) {
-    storedValue = value;
+    storedValue = current;
   }
-  pendingOperator = operator;
+  pendingOperator = op;
   waitingForInput = true;
   finishedCalculation = false;
+  expressionText = '';
   render();
 }
 
-function showAnswer() {
-  if (!pendingOperator || storedValue === null || display === 'Xato') return;
+function showResult() {
+  if (!pendingOperator || storedValue === null || display === 'Error') return;
   const left = storedValue;
-  const operator = pendingOperator;
+  const op = pendingOperator;
   const right = Number(display);
-  const answer = calculate(left, right, operator);
-  expressionMessage = `${formatNumber(left)} ${operator} ${formatNumber(right)} =`;
-  display = formatNumber(answer);
+  const result = calculate(left, right, op);
+
+  expressionText = `${formatNumber(left)} ${op} ${formatNumber(right)} =`;
+  display = formatNumber(result);
   storedValue = null;
   pendingOperator = null;
   waitingForInput = true;
@@ -130,13 +140,13 @@ function clearAll() {
   pendingOperator = null;
   waitingForInput = false;
   finishedCalculation = false;
-  expressionMessage = '';
+  expressionText = '';
   render();
 }
 
 function deleteLast() {
-  expressionMessage = '';
-  if (display === 'Xato' || waitingForInput || finishedCalculation) {
+  expressionText = '';
+  if (display === 'Error' || waitingForInput || finishedCalculation) {
     display = '0';
     waitingForInput = false;
     finishedCalculation = false;
@@ -148,62 +158,66 @@ function deleteLast() {
 }
 
 function toggleSign() {
-  if (display === '0' || display === 'Xato') return;
-  expressionMessage = '';
+  if (display === '0' || display === 'Error') return;
+  expressionText = '';
   display = display.startsWith('-') ? display.slice(1) : `-${display}`;
   render();
 }
 
-function percent() {
-  if (display === 'Xato') return;
-  expressionMessage = '';
-  display = formatNumber(Number(display) / 100);
-  waitingForInput = false;
-  finishedCalculation = false;
-  render();
+function handleButton(button) {
+  button.classList.add('pressed');
+  setTimeout(() => button.classList.remove('pressed'), 120);
+
+  if (button.dataset.number !== undefined) {
+    playClickSound('tap');
+    appendDigit(button.dataset.number);
+    return;
+  }
+
+  if (button.dataset.op) {
+    playClickSound('operator');
+    chooseOperator(button.dataset.op);
+    return;
+  }
+
+  const action = button.dataset.action;
+  const soundType = action === 'equals' ? 'equals' : action === 'clear' ? 'clear' : 'tap';
+  playClickSound(soundType);
+
+  switch (action) {
+    case 'clear': clearAll(); break;
+    case 'delete': deleteLast(); break;
+    case 'decimal': appendDecimal(); break;
+    case 'sign': toggleSign(); break;
+    case 'equals': showResult(); break;
+  }
 }
 
 keys.addEventListener('click', (event) => {
-  const button = event.target.closest('button');
-  if (!button) return;
-  button.classList.add('pressed');
-  window.setTimeout(() => button.classList.remove('pressed'), 120);
-  playClickSound(button.dataset.action === 'equals' ? 'equals' : button.dataset.op && button.dataset.op !== '%' ? 'operator' : 'tap');
-
-  if (button.dataset.number !== undefined) enterDigit(button.dataset.number);
-  else if (button.dataset.op === '%') percent();
-  else if (button.dataset.op) chooseOperator(button.dataset.op);
-  else {
-    switch (button.dataset.action) {
-      case 'clear': clearAll(); break;
-      case 'delete': deleteLast(); break;
-      case 'decimal': enterDecimal(); break;
-      case 'sign': toggleSign(); break;
-      case 'equals': showAnswer(); break;
-    }
-  }
+  const btn = event.target.closest('button');
+  if (!btn) return;
+  handleButton(btn);
 });
 
 soundToggle.addEventListener('click', () => {
   soundEnabled = !soundEnabled;
   soundToggle.setAttribute('aria-pressed', String(soundEnabled));
-  soundToggle.setAttribute('aria-label', soundEnabled ? 'Tugma ovozini o‘chirish' : 'Tugma ovozini yoqish');
-  soundIcon.textContent = soundEnabled ? '♪' : '♪̸';
-  soundLabel.textContent = soundEnabled ? 'Ovoz yoqilgan' : 'Ovoz o‘chirilgan';
+  soundToggle.querySelector('.sound-text').textContent = soundEnabled ? 'ON' : 'OFF';
+  soundToggle.querySelector('.sound-icon').textContent = soundEnabled ? '♪' : '🔇';
   if (soundEnabled) playClickSound('tap');
 });
 
 document.addEventListener('keydown', (event) => {
-  if (/^[0-9]$/.test(event.key)) { playClickSound(); enterDigit(event.key); }
-  else if (event.key === '.' || event.key === ',') { playClickSound(); enterDecimal(); }
-  else if (event.key === 'Enter' || event.key === '=') { event.preventDefault(); playClickSound('equals'); showAnswer(); }
-  else if (event.key === 'Backspace') { playClickSound(); deleteLast(); }
-  else if (event.key === 'Escape') { playClickSound(); clearAll(); }
+  if (/^[0-9]$/.test(event.key)) { playClickSound('tap'); appendDigit(event.key); }
+  else if (event.key === '.' || event.key === ',') { playClickSound('tap'); appendDecimal(); }
+  else if (event.key === 'Enter' || event.key === '=') { event.preventDefault(); playClickSound('equals'); showResult(); }
+  else if (event.key === 'Backspace') { playClickSound('tap'); deleteLast(); }
+  else if (event.key === 'Escape') { playClickSound('clear'); clearAll(); }
   else if (event.key === '+') { playClickSound('operator'); chooseOperator('+'); }
   else if (event.key === '-') { playClickSound('operator'); chooseOperator('−'); }
   else if (event.key === '*') { playClickSound('operator'); chooseOperator('×'); }
   else if (event.key === '/') { event.preventDefault(); playClickSound('operator'); chooseOperator('÷'); }
-  else if (event.key === '%') { playClickSound(); percent(); }
+  else if (event.key === '%') { playClickSound('operator'); chooseOperator('%'); }
 });
 
 render();
