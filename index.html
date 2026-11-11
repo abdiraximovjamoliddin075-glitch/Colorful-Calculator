@@ -4,12 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#7028e4" />
-    <meta name="description" content="Rangli, qulay va bepul onlayn kalkulyator." />
+    <meta name="description" content="Rangli, qulay va yoqimli ovozli onlayn kalkulyator." />
     <title>Rangli Kalkulyator</title>
     <link rel="stylesheet" href="style.css" />
     <script src="script.js" defer></script>
   </head>
   <body>
+    <div class="decoration decoration-one" aria-hidden="true"></div>
+    <div class="decoration decoration-two" aria-hidden="true"></div>
     <main class="page">
       <header class="intro">
         <div class="sparkle" aria-hidden="true">✦</div>
@@ -19,6 +21,13 @@
       </header>
 
       <section class="calculator" aria-label="Kalkulyator">
+        <div class="calculator-topline">
+          <span class="mini-label"><span class="status-dot"></span> HISOBLASHGA TAYYOR</span>
+          <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="true" aria-label="Tugma ovozini o‘chirish">
+            <span id="sound-icon" aria-hidden="true">♪</span>
+            <span id="sound-label">Ovoz yoqilgan</span>
+          </button>
+        </div>
         <div class="screen" aria-live="polite" aria-atomic="true">
           <div class="expression" id="expression">&nbsp;</div>
           <output class="result" id="result">0</output>
@@ -52,7 +61,7 @@
         </div>
         <p class="hint">Klaviaturadan ham foydalanishingiz mumkin</p>
       </section>
-      <footer>Har bir hisob-kitob — yangi imkoniyat 🌈</footer>
+      <footer>Har bir hisob-kitob — yangi imkoniyat <span aria-hidden="true">🌈</span></footer>
     </main>
   </body>
 </html>

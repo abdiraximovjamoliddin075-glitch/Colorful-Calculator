@@ -1,18 +1,24 @@
 const resultEl = document.querySelector('#result');
 const expressionEl = document.querySelector('#expression');
 const keys = document.querySelector('#keys');
+const soundToggle = document.querySelector('#sound-toggle');
+const soundIcon = document.querySelector('#sound-icon');
+const soundLabel = document.querySelector('#sound-label');
 
 let display = '0';
 let storedValue = null;
 let pendingOperator = null;
 let waitingForInput = false;
 let finishedCalculation = false;
+let expressionMessage = '';
+let soundEnabled = true;
+let audioContext = null;
 
 function render() {
   resultEl.textContent = display;
-  expressionEl.textContent = pendingOperator && storedValue !== null
+  expressionEl.textContent = expressionMessage || (pendingOperator && storedValue !== null
     ? `${formatNumber(storedValue)} ${pendingOperator}`
-    : '\u00a0';
+    : '\u00a0');
 }
 
 function formatNumber(number) {
@@ -20,7 +26,38 @@ function formatNumber(number) {
   return String(Number(number.toPrecision(11)));
 }
 
+// Browser audio starts only after a user action; no sound files or downloads are needed.
+function playClickSound(kind = 'tap') {
+  if (!soundEnabled) return;
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    audioContext ||= new AudioContextClass();
+    if (audioContext.state === 'suspended') audioContext.resume();
+
+    const now = audioContext.currentTime;
+    const frequencies = kind === 'equals' ? [660, 880] : kind === 'operator' ? [520] : [620];
+    frequencies.forEach((frequency, index) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const start = now + index * 0.065;
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(kind === 'equals' ? 0.075 : 0.045, start + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.13);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start(start);
+      oscillator.stop(start + 0.14);
+    });
+  } catch {
+    // The calculator remains usable if audio is unavailable or blocked by the browser.
+  }
+}
+
 function enterDigit(digit) {
+  expressionMessage = '';
   if (display === 'Xato' || waitingForInput || finishedCalculation) {
     display = digit;
     waitingForInput = false;
@@ -34,6 +71,7 @@ function enterDigit(digit) {
 }
 
 function enterDecimal() {
+  expressionMessage = '';
   if (display === 'Xato' || waitingForInput || finishedCalculation) {
     display = '0.';
     waitingForInput = false;
@@ -50,13 +88,13 @@ function calculate(left, right, operator) {
     case '−': return left - right;
     case '×': return left * right;
     case '÷': return right === 0 ? NaN : left / right;
-    case '%': return left * right / 100;
     default: return right;
   }
 }
 
 function chooseOperator(operator) {
   if (display === 'Xato') return;
+  expressionMessage = '';
   const value = Number(display);
   if (pendingOperator && !waitingForInput) {
     const answer = calculate(storedValue, value, pendingOperator);
@@ -77,7 +115,7 @@ function showAnswer() {
   const operator = pendingOperator;
   const right = Number(display);
   const answer = calculate(left, right, operator);
-  expressionEl.textContent = `${formatNumber(left)} ${operator} ${formatNumber(right)} =`;
+  expressionMessage = `${formatNumber(left)} ${operator} ${formatNumber(right)} =`;
   display = formatNumber(answer);
   storedValue = null;
   pendingOperator = null;
@@ -92,10 +130,12 @@ function clearAll() {
   pendingOperator = null;
   waitingForInput = false;
   finishedCalculation = false;
+  expressionMessage = '';
   render();
 }
 
 function deleteLast() {
+  expressionMessage = '';
   if (display === 'Xato' || waitingForInput || finishedCalculation) {
     display = '0';
     waitingForInput = false;
@@ -109,12 +149,14 @@ function deleteLast() {
 
 function toggleSign() {
   if (display === '0' || display === 'Xato') return;
+  expressionMessage = '';
   display = display.startsWith('-') ? display.slice(1) : `-${display}`;
   render();
 }
 
 function percent() {
   if (display === 'Xato') return;
+  expressionMessage = '';
   display = formatNumber(Number(display) / 100);
   waitingForInput = false;
   finishedCalculation = false;
@@ -124,6 +166,9 @@ function percent() {
 keys.addEventListener('click', (event) => {
   const button = event.target.closest('button');
   if (!button) return;
+  button.classList.add('pressed');
+  window.setTimeout(() => button.classList.remove('pressed'), 120);
+  playClickSound(button.dataset.action === 'equals' ? 'equals' : button.dataset.op && button.dataset.op !== '%' ? 'operator' : 'tap');
 
   if (button.dataset.number !== undefined) enterDigit(button.dataset.number);
   else if (button.dataset.op === '%') percent();
@@ -139,17 +184,26 @@ keys.addEventListener('click', (event) => {
   }
 });
 
+soundToggle.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  soundToggle.setAttribute('aria-pressed', String(soundEnabled));
+  soundToggle.setAttribute('aria-label', soundEnabled ? 'Tugma ovozini o‘chirish' : 'Tugma ovozini yoqish');
+  soundIcon.textContent = soundEnabled ? '♪' : '♪̸';
+  soundLabel.textContent = soundEnabled ? 'Ovoz yoqilgan' : 'Ovoz o‘chirilgan';
+  if (soundEnabled) playClickSound('tap');
+});
+
 document.addEventListener('keydown', (event) => {
-  if (/^[0-9]$/.test(event.key)) enterDigit(event.key);
-  else if (event.key === '.' || event.key === ',') enterDecimal();
-  else if (event.key === 'Enter' || event.key === '=') { event.preventDefault(); showAnswer(); }
-  else if (event.key === 'Backspace') deleteLast();
-  else if (event.key === 'Escape') clearAll();
-  else if (event.key === '+') chooseOperator('+');
-  else if (event.key === '-') chooseOperator('−');
-  else if (event.key === '*') chooseOperator('×');
-  else if (event.key === '/') { event.preventDefault(); chooseOperator('÷'); }
-  else if (event.key === '%') percent();
+  if (/^[0-9]$/.test(event.key)) { playClickSound(); enterDigit(event.key); }
+  else if (event.key === '.' || event.key === ',') { playClickSound(); enterDecimal(); }
+  else if (event.key === 'Enter' || event.key === '=') { event.preventDefault(); playClickSound('equals'); showAnswer(); }
+  else if (event.key === 'Backspace') { playClickSound(); deleteLast(); }
+  else if (event.key === 'Escape') { playClickSound(); clearAll(); }
+  else if (event.key === '+') { playClickSound('operator'); chooseOperator('+'); }
+  else if (event.key === '-') { playClickSound('operator'); chooseOperator('−'); }
+  else if (event.key === '*') { playClickSound('operator'); chooseOperator('×'); }
+  else if (event.key === '/') { event.preventDefault(); playClickSound('operator'); chooseOperator('÷'); }
+  else if (event.key === '%') { playClickSound(); percent(); }
 });
 
 render();

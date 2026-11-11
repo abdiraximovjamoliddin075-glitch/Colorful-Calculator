@@ -1,12 +1,12 @@
 # Rangli Kalkulyator 🌈
 
-O‘zbek tilidagi, mobil telefonda ham ishlaydigan rangli kalkulyator.
+O‘zbek tilidagi, mobil telefonda ham ishlaydigan rangli kalkulyator. Tugmalarda yoqimli ovoz bor; yuqoridagi ovoz tugmasi orqali uni yoqib-o‘chirish mumkin.
 
-## Saytni hammaga ochish
-
-GitHub’da repository sahifasidan **Settings → Pages** ni oching. **Deploy from a branch** seçib, branch `main`, folder `/ (root)` qilib **Save** bosing. Bir oz kutgach, sayt quyidagi manzilda ochiladi:
+## Sayt
 
 https://abdiraximovjamoliddin075-glitch.github.io/Colorful-Calculator/
+
+GitHub Pages yangi o‘zgarishlarni avtomatik joylaydi. Bir oz kutib, sahifani yangilang.
 
 ## Boshqaruv
 
